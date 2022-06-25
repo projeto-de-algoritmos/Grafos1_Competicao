@@ -234,7 +234,7 @@ def startGame():
 
   all_sprites_list = pygame.sprite.RenderPlain()
   block_list = pygame.sprite.RenderPlain()
-  zumbie_list = pygame.sprite.RenderPlain()
+  zumbie_collide = pygame.sprite.RenderPlain()
   person_collide = pygame.sprite.RenderPlain()
   wall_list = setupRoomOne(all_sprites_list)
 
@@ -247,17 +247,31 @@ def startGame():
   person_collide.add(Person)
 
   Zumbie=Ghost( w, m_h, "images/Zumbie.png" )
-  zumbie_list.add(Zumbie)
+  zumbie_collide.add(Zumbie)
   all_sprites_list.add(Zumbie)
+  invalidposition =True
 
-  # Mostta a moedinha
-  column = random.randint(0,18)
-  row = random.randint(0,18)
-  block = Block(yellow, 10, 10)
-  block.rect.x = (30*column+6)+26
-  block.rect.y = (30*row+6)+26
-  block_list.add(block)
-  all_sprites_list.add(block)
+  # Mostra a moedinha
+  while(invalidposition):
+    column = random.randint(0,18)
+    row = random.randint(0,18)
+    block = Block(yellow, 10, 10)
+    block.rect.x = (30*column+6)+26
+    block.rect.y = (30*row+6)+26
+    b_collide = pygame.sprite.spritecollide(block, wall_list, False)
+    z_collide = pygame.sprite.spritecollide(block, zumbie_collide, False)
+    p_collide = pygame.sprite.spritecollide(block, person_collide, False)
+    if b_collide:
+      continue
+    elif p_collide:
+      continue
+    elif z_collide:
+        continue
+    else:
+      # Add the block to the list of objects
+      block_list.add(block)
+      all_sprites_list.add(block)
+      invalidposition =False
 
   bll = len(block_list)
 
@@ -316,15 +330,15 @@ def startGame():
         
       wall_list.draw(screen)
       all_sprites_list.draw(screen)
-      zumbie_list.draw(screen)
+      zumbie_collide.draw(screen)
 
       if score == bll:
-        doNext("Parabens, voce ganhou!",145,all_sprites_list,block_list,zumbie_list,person_collide,wall_list)
+        doNext("Parabens, voce ganhou!",145,all_sprites_list,block_list,zumbie_collide,person_collide,wall_list)
 
-      zumbie_hit_list = pygame.sprite.spritecollide(Person, zumbie_list, False)
+      zumbie_hit_list = pygame.sprite.spritecollide(Person, zumbie_collide, False)
 
       if zumbie_hit_list:
-        doNext("Voce perdeu",235,all_sprites_list,block_list,zumbie_list,person_collide,wall_list)
+        doNext("Voce perdeu",235,all_sprites_list,block_list,zumbie_collide,person_collide,wall_list)
 
       # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
       
