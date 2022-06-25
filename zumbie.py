@@ -158,19 +158,27 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top=old_y
 
 #Inheritime Player klassist
-class Ghost(Player):
+class Zumbie_Class(Player):
     # Change the speed of the ghost
-    def changespeed(self,list,ghost,turn,steps,l):
+    def changespeed(self,list,zumbie,turn,steps,l):
+      #print("Valor do turn", turn)
+      #print("Valor do step", steps)
+      # l sempre vale 17
       try:
         z=list[turn][2]
+        #print("Valor do z", steps)
         if steps < z:
+          #print("Entrou no if do step menor que z", steps, z)
           self.change_x=list[turn][0]
           self.change_y=list[turn][1]
           steps+=1
         else:
+          #print("Entrou no primeiro else")
           if turn < l:
+            #print("Entrou no if do TURN < L", turn, l)
             turn+=1
           else:
+            #print("Entrou no ELSE do TURN = 0")
             turn = 0
           self.change_x=list[turn][0]
           self.change_y=list[turn][1]
@@ -178,7 +186,9 @@ class Ghost(Player):
         return [turn,steps]
       except IndexError:
          return [0,0]
-
+# propriedades de cada valor = [avanço em x, avanço em y, quantidade de passos]
+# Cada item nesse array é um caminho em uma direção
+# Quando a quantidade de passos acaba ele vai pra direção seguinte no array
 Zumbie_directions = [
 [0,-30,4],
 [15,0,9],
@@ -211,7 +221,7 @@ screen = pygame.display.set_mode([606, 606])
 # This is a list of 'sprites.' Each block in the program is
 # added to this list. The list is managed by a class called 'RenderPlain.'
 
-pygame.display.set_caption('Zumbie')
+pygame.display.set_caption('Zumbie Competition')
 
 # Create a surface we can draw on
 background = pygame.Surface(screen.get_size())
@@ -246,7 +256,7 @@ def startGame():
   all_sprites_list.add(Person)
   person_collide.add(Person)
 
-  Zumbie=Ghost( w, m_h, "images/Zumbie.png" )
+  Zumbie=Zumbie_Class( w, m_h, "images/Zumbie.png" )
   zumbie_collide.add(Zumbie)
   all_sprites_list.add(Zumbie)
   invalidposition =True
@@ -335,7 +345,7 @@ def startGame():
       if score == bll:
         doNext("Parabens, voce ganhou!",145,all_sprites_list,block_list,zumbie_collide,person_collide,wall_list)
 
-      zumbie_hit_list = pygame.sprite.spritecollide(Person, zumbie_collide, False)
+      zumbie_hit_list = pygame.sprite.spritecollide(Zumbie, block_list, True)
 
       if zumbie_hit_list:
         doNext("Voce perdeu",235,all_sprites_list,block_list,zumbie_collide,person_collide,wall_list)
