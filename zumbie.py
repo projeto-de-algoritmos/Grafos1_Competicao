@@ -120,7 +120,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.top = y
         self.rect.left = x
         self.prev_x = x
-        self.prev_y = y
+        self.prev_y = x
 
     # Clear the speed of the player
     def prevdirection(self):
@@ -236,9 +236,11 @@ pygame.font.init()
 font = pygame.font.SysFont("Arial", 30)
 
 #default locations for Person and zumbie
-w = 303-16 #Width
+
+
+""" w = 303-16 #Width
 p_h = (7*60)+19 #Person height
-m_h = (4*60)+19 #Zumbie height
+m_h = (4*60)+19 #Zumbie height """
 
 def startGame():
 
@@ -252,16 +254,37 @@ def startGame():
   p_steps = 0
 
   # Create the player paddle object
-  Person = Player( w, p_h, "images/Person.png" )
-  all_sprites_list.add(Person)
-  person_collide.add(Person)
-
-  Zumbie=Zumbie_Class( w, m_h, "images/Zumbie.png" )
-  zumbie_collide.add(Zumbie)
-  all_sprites_list.add(Zumbie)
   invalidposition =True
+  # Random location for Person
+  while(invalidposition):
+    per_x = (30*random.randint(0,18)+6)+12
+    per_y = (30*random.randint(0,18)+6)+12
+    Person = Player( per_x, per_y, "images/Person.png" )
+    p_collide = pygame.sprite.spritecollide(Person, wall_list, False)
+    if p_collide:
+        continue
+    else:
+      all_sprites_list.add(Person)
+      person_collide.add(Person)
+      invalidposition =False
+
+
+  invalidposition =True
+  # Random location for Zumbie
+  while(invalidposition):
+    zumb_x = (30*random.randint(0,18)+6)+12
+    zumb_y = (30*random.randint(0,18)+6)+12
+    Zumbie=Zumbie_Class( zumb_x, zumb_y, "images/Zumbie.png" )
+    z_collide = pygame.sprite.spritecollide(Zumbie, wall_list, False)
+    if z_collide:
+      continue
+    else:
+      zumbie_collide.add(Zumbie)
+      all_sprites_list.add(Zumbie)
+      invalidposition =False
 
   # Mostra a moedinha
+  invalidposition =True
   while(invalidposition):
     column = random.randint(0,18)
     row = random.randint(0,18)
