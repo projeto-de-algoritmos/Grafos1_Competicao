@@ -79,6 +79,39 @@ def setupRoomOne(all_sprites_list):
 
 # This class represents the ball        
 # It derives from the "Sprite" class in Pygame
+
+class Point (pygame.sprite.Sprite):
+  def __init__(self, x, y):
+      pygame.sprite.Sprite.__init__(self) 
+ 
+      # Create an image of the block, and fill it with a color.
+      # This could also be an image loaded from the disk.
+      self.point = pygame.Surface([x, y])
+      #self.image.fill(white)
+      #self.image.set_colorkey(white)
+      #pygame.draw.ellipse(self.image,color,[0,0,width,height])
+
+      # Fetch the rectangle object that has the dimensions of the image
+      # image.
+      # Update the position of this object by setting the values 
+      # of rect.x and rect.y
+      self.rect = self.point.get_rect() 
+class Grafo:
+  def __init__(self, vertices):
+    pygame.sprite.Sprite.__init__(self) 
+    self.vertices = vertices
+    self.grafo = [[0]*self.vertices for i in range(self.vertices)]
+
+  def adiciona_aresta(self, u, v):
+    self.grafo[u][v] = 1
+    self.grafo[v][u] = 1
+
+  def mostra_lista(self):
+    print("Inprimindo matrix de adjacencias: ....")
+    for i in range(self.vertices):
+      print(self.grafo[i])
+
+
 class Block(pygame.sprite.Sprite):
      
     # Constructor. Pass in the color of the block, 
@@ -249,11 +282,33 @@ def startGame():
   zumbie_collide = pygame.sprite.RenderPlain()
   person_collide = pygame.sprite.RenderPlain()
   wall_list = setupRoomOne(all_sprites_list)
+  g = Grafo(19)
 
   p_turn = 0
   p_steps = 0
 
-  # Create the player paddle object
+  # Cria o caminho do grafo
+  for row in range(18):
+    for column in range(18):
+        if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
+            continue
+        else:
+          point = Point((30*column+6)+12, (30*row+6)+12)
+
+          # Set a random location for the block
+          point.rect.x = (30*column+6)+26
+          point.rect.y = (30*row+6)+26
+
+          w_collide = pygame.sprite.spritecollide(point, wall_list, False)
+          if w_collide:
+            continue
+          else:
+            # Add the block to the list of objects
+            g.adiciona_aresta(row, column)
+
+  
+  g.mostra_lista()
+  
   invalidposition =True
   # Random location for Person
   while(invalidposition):
