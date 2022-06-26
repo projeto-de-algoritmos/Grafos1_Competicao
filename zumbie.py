@@ -1,6 +1,8 @@
+from dis import dis
 from turtle import width
 from collections import deque
 import pygame
+import re
 from tkinter import messagebox
 import sys
 import random
@@ -9,7 +11,7 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 green = (147, 241, 55)
 lightGreen = (59, 255, 176)
-red = (0, 0, 255)
+red = (192, 57, 43)
 yellow = (255, 255, 0)
 
 Personicon = pygame.image.load('images/Zumbie.png')
@@ -199,17 +201,40 @@ class Player(pygame.sprite.Sprite):
 
 class Zumbie_Class(Player):
     # Change the speed of the ghost
-    def changespeed(self, list, turn, steps, l):
-        # print("Valor do turn", turn)
-        # print("Valor do step", steps)
+    def changespeed(self, listPath, turn, steps, l):
+        k = -1
+        l = -1
+        result = []
+        for i in listPath:
+            if(i.__dict__['dist'] == 1):
+                k = i.__dict__['x']
+                l = i.__dict__['y']
+            elif(i.__dict__['dist'] > 0):
+                x = i.__dict__['x']
+                y = i.__dict__['y']
+                dist = i.__dict__['dist']
+
+                if(x < k):
+                    result.append([0, -15, dist])
+                    k = x
+                elif(x > k):
+                    result.append([0, 15, dist])
+                    k = x
+                else:
+                    if(y < l):
+                        result.append([-15, 0, dist])
+                    elif(y > l):
+                        result.append([15, 0, dist])
+                print("##", [x, y, dist])
+
         # l sempre vale 17
         try:
-            z = list[turn][2]
+            z = result[turn][2]
             # print("Valor do z", steps)
             if steps < z:
                 # print("Entrou no if do step menor que z", steps, z)
-                self.change_x = list[turn][0]
-                self.change_y = list[turn][1]
+                self.change_x = result[turn][0]
+                self.change_y = result[turn][1]
                 steps += 1
             else:
                 # print("Entrou no primeiro else")
@@ -219,8 +244,8 @@ class Zumbie_Class(Player):
                 else:
                     # print("Entrou no ELSE do TURN = 0")
                     turn = 0
-                self.change_x = list[turn][0]
-                self.change_y = list[turn][1]
+                self.change_x = result[turn][0]
+                self.change_y = result[turn][1]
                 steps = 0
             return [turn, steps]
         except IndexError:
@@ -231,24 +256,24 @@ class Zumbie_Class(Player):
 # Cada item nesse array é um caminho em uma direção
 # Quando a quantidade de passos acaba ele vai pra direção seguinte no array
 Zumbie_directions = [
-    # [0,-30,1],
-    # [15,0,2],
-    # [0,15,3],
-    # [-15,0,4],
-    # [0,15,5],
-    # [15,0,6],
-    # [0,-15,7],
-    # [15,0,8],
-    # [0,15,9],
-    # [15,0,10],
-    # [0,15,11],
-    # [15,0,12],
-    # [0,-15,13],
-    # [-15,0,14],
-    # [0,15,15],
-    # [-15,0,16],
-    # [0,-15,17],
-    # [15,0,18]
+    [0, -30, 1],
+    [15, 0, 2],
+    [0, 15, 3],
+    [-15, 0, 4],
+    [0, 15, 5],
+    [15, 0, 6],
+    [0, -15, 7],
+    [15, 0, 8],
+    [0, 15, 9],
+    [15, 0, 10],
+    [0, 15, 11],
+    [15, 0, 12],
+    [0, -15, 13],
+    [-15, 0, 14],
+    [0, 15, 15],
+    [-15, 0, 16],
+    [0, -15, 17],
+    [15, 0, 18]
 ]
 
 pl = len(Zumbie_directions)-1
@@ -301,8 +326,8 @@ class Cell:
         self.dist = dist
         self.prev = prev
 
-    def __str__(self):
-        return "(" + str(self.x) + "," + str(self.y) + ")"
+    # def __str__(self):
+    #     return str(self.x) + "," + str(self.y)
 
 
 class ShortestPathBetweenCellsBFS:
@@ -329,6 +354,7 @@ class ShortestPathBetweenCellsBFS:
             cells.append(row)
 
         queue = []
+        listPath = []
         src = cells[sx][sy]
         src.dist = 0
         queue.append(src)
@@ -357,7 +383,8 @@ class ShortestPathBetweenCellsBFS:
                 path.insert(0, p)
                 p = p.prev
             for i in path:
-                print(i)
+                listPath.append(i)
+        return listPath
 
     def visit(self, cells, queue, x, y, parent):
         if x < 0 or x >= len(cells) or y < 0 or y >= len(cells[0]) or cells[x][y] == None:
@@ -402,7 +429,7 @@ def startGame():
                 g.adiciona_aresta(row, column)
                 # Add the block to the list of objects
 
-    g.mostra_lista()
+    # g.mostra_lista()
     grafo = g.retorna_grafo()
 
     invalidposition = True
@@ -427,7 +454,6 @@ def startGame():
         zumb_x = (30*x+6)+12
         zumb_y = (30*y+6)+12
         start = [y, x]
-        print("here", start)
         Zumbie = Zumbie_Class(zumb_x, zumb_y, "images/Zumbie.png")
         z_collide = pygame.sprite.spritecollide(Zumbie, wall_list, False)
         if z_collide:
@@ -446,7 +472,6 @@ def startGame():
         block.rect.x = (30*column+6)+26
         block.rect.y = (30*row+6)+26
         end = [row, column]
-        print("a", end)
         b_collide = pygame.sprite.spritecollide(block, wall_list, False)
         z_collide = pygame.sprite.spritecollide(block, zumbie_collide, False)
         p_collide = pygame.sprite.spritecollide(block, person_collide, False)
@@ -466,8 +491,8 @@ def startGame():
 
     print("start", start)
     print("end", end)
-    print("case 1: ")
-    matrix.shortestPath(grafo, start, end)
+    listPath = matrix.shortestPath(grafo, start, end)
+    Zumbie_directions = listPath
 
     bll = len(block_list)
 
