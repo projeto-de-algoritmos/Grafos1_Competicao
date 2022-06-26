@@ -117,7 +117,6 @@ class Grafo:
 
     def adiciona_aresta(self, u, v):
         self.grafo[u][v] = 1
-        self.grafo[v][u] = 1
 
     def mostra_lista(self):
         print("Inprimindo matrix de adjacencias: ....")
@@ -129,27 +128,16 @@ class Grafo:
 
 
 class Block(pygame.sprite.Sprite):
-
-    # Constructor. Pass in the color of the block,
-    # and its x and y position
     def __init__(self, color, width, height):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
-        # Create an image of the block, and fill it with a color.
-        # This could also be an image loaded from the disk.
         self.image = pygame.Surface([width, height])
         self.image.fill(white)
         self.image.set_colorkey(white)
         pygame.draw.ellipse(self.image, color, [0, 0, width, height])
 
-        # Fetch the rectangle object that has the dimensions of the image
-        # image.
-        # Update the position of this object by setting the values
-        # of rect.x and rect.y
         self.rect = self.image.get_rect()
-
-# This class represents the bar at the bottom that the player controls
 
 
 class Player(pygame.sprite.Sprite):
@@ -208,12 +196,10 @@ class Player(pygame.sprite.Sprite):
                 # Whoops, hit a wall. Go back to the old position
                 self.rect.top = old_y
 
-# Inheritime Player klassist
-
 
 class Zumbie_Class(Player):
     # Change the speed of the ghost
-    def changespeed(self, list, zumbie, turn, steps, l):
+    def changespeed(self, list, turn, steps, l):
         # print("Valor do turn", turn)
         # print("Valor do step", steps)
         # l sempre vale 17
@@ -245,24 +231,24 @@ class Zumbie_Class(Player):
 # Cada item nesse array é um caminho em uma direção
 # Quando a quantidade de passos acaba ele vai pra direção seguinte no array
 Zumbie_directions = [
-    # [0,-30,4],
-    # [15,0,9],
+    # [0,-30,1],
+    # [15,0,2],
+    # [0,15,3],
+    # [-15,0,4],
+    # [0,15,5],
+    # [15,0,6],
+    # [0,-15,7],
+    # [15,0,8],
+    # [0,15,9],
+    # [15,0,10],
     # [0,15,11],
-    # [-15,0,23],
-    # [0,15,7],
-    # [15,0,3],
-    # [0,-15,3],
-    # [15,0,19],
-    # [0,15,3],
-    # [15,0,3],
-    # [0,15,3],
-    # [15,0,3],
-    # [0,-15,15],
-    # [-15,0,7],
-    # [0,15,3],
-    # [-15,0,19],
-    # [0,-15,11],
-    # [15,0,9]
+    # [15,0,12],
+    # [0,-15,13],
+    # [-15,0,14],
+    # [0,15,15],
+    # [-15,0,16],
+    # [0,-15,17],
+    # [15,0,18]
 ]
 
 pl = len(Zumbie_directions)-1
@@ -521,10 +507,10 @@ def startGame():
         Person.update(wall_list)
 
         returned = Zumbie.changespeed(
-            Zumbie_directions, False, p_turn, p_steps, pl)
+            Zumbie_directions, p_turn, p_steps, pl)
         p_turn = returned[0]
         p_steps = returned[1]
-        Zumbie.changespeed(Zumbie_directions, False, p_turn, p_steps, pl)
+        Zumbie.changespeed(Zumbie_directions, p_turn, p_steps, pl)
         Zumbie.update(wall_list)
 
         # See if the Zumbie block has collided with anything.
