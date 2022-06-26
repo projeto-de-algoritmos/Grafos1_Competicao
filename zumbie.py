@@ -1,11 +1,15 @@
+from turtle import width
+from collections import deque
 import pygame
+from tkinter import messagebox
+import sys
 import random
 
 black = (0, 0, 0)
 white = (255, 255, 255)
 green = (147, 241, 55)
 lightGreen = (59, 255, 176)
-red = (0,0,255)
+red = (0, 0, 255)
 yellow = (255, 255, 0)
 
 Personicon = pygame.image.load('images/Zumbie.png')
@@ -120,6 +124,9 @@ class Grafo:
         for i in range(self.vertices):
             print(self.grafo[i])
 
+    def retorna_grafo(self):
+        return self.grafo
+
 
 class Block(pygame.sprite.Sprite):
 
@@ -207,24 +214,24 @@ class Player(pygame.sprite.Sprite):
 class Zumbie_Class(Player):
     # Change the speed of the ghost
     def changespeed(self, list, zumbie, turn, steps, l):
-        #print("Valor do turn", turn)
-        #print("Valor do step", steps)
+        # print("Valor do turn", turn)
+        # print("Valor do step", steps)
         # l sempre vale 17
         try:
             z = list[turn][2]
-            #print("Valor do z", steps)
+            # print("Valor do z", steps)
             if steps < z:
-                #print("Entrou no if do step menor que z", steps, z)
+                # print("Entrou no if do step menor que z", steps, z)
                 self.change_x = list[turn][0]
                 self.change_y = list[turn][1]
                 steps += 1
             else:
-                #print("Entrou no primeiro else")
+                # print("Entrou no primeiro else")
                 if turn < l:
-                    #print("Entrou no if do TURN < L", turn, l)
+                    # print("Entrou no if do TURN < L", turn, l)
                     turn += 1
                 else:
-                    #print("Entrou no ELSE do TURN = 0")
+                    # print("Entrou no ELSE do TURN = 0")
                     turn = 0
                 self.change_x = list[turn][0]
                 self.change_y = list[turn][1]
@@ -264,7 +271,17 @@ pl = len(Zumbie_directions)-1
 pygame.init()
 
 # Create an 606x606 sized screen
-screen = pygame.display.set_mode([606, 606])
+size = (width, height) = 606, 606
+screen = pygame.display.set_mode(size)
+
+cols, rows = 62, 62
+
+w = width//cols
+h = height//rows
+
+grid = []
+queue, visited = deque(), []
+path = []
 
 # This is a list of 'sprites.' Each block in the program is
 # added to this list. The list is managed by a class called 'RenderPlain.'
@@ -291,6 +308,83 @@ p_h = (7*60)+19 #Person height
 m_h = (4*60)+19 #Zumbie height """
 
 
+class Cell:
+    def __init__(self, x, y, dist, prev):
+        self.x = x
+        self.y = y
+        self.dist = dist
+        self.prev = prev
+
+    def __str__(self):
+        return "(" + str(self.x) + "," + str(self.y) + ")"
+
+
+class ShortestPathBetweenCellsBFS:
+    def shortestPath(self, matrix, start, end):
+        sx = start[0]
+        sy = start[1]
+        dx = end[0]
+        dy = end[1]
+
+        if matrix[sx][sy] == 0 or matrix[dx][dy] == 0:
+            messagebox.showinfo("Sem solucao", "Nao ha solucao")
+            return
+
+        m = len(matrix)
+        n = len(matrix[0])
+        cells = []
+        for i in range(0, m):
+            row = []
+            for j in range(0, n):
+                if matrix[i][j] != 0:
+                    row.append(Cell(i, j, sys.maxsize, None))
+                else:
+                    row.append(None)
+            cells.append(row)
+
+        queue = []
+        src = cells[sx][sy]
+        src.dist = 0
+        queue.append(src)
+        dest = None
+        p = queue.pop(0)
+        while p != None:
+            if p.x == dx and p.y == dy:
+                dest = p
+                break
+            self.visit(cells, queue, p.x-1, p.y, p)
+            self.visit(cells, queue, p.x, p.y-1, p)
+            self.visit(cells, queue, p.x+1, p.y, p)
+            self.visit(cells, queue, p.x, p.y+1, p)
+            if len(queue) > 0:
+                p = queue.pop(0)
+            else:
+                p = None
+
+        if dest == None:
+            messagebox.showinfo("Sem solucao", "Nao ha solucao")
+            return
+        else:
+            path = []
+            p = dest
+            while p != None:
+                path.insert(0, p)
+                p = p.prev
+            for i in path:
+                print(i)
+
+    def visit(self, cells, queue, x, y, parent):
+        if x < 0 or x >= len(cells) or y < 0 or y >= len(cells[0]) or cells[x][y] == None:
+            return
+
+        dist = parent.dist + 1
+        p = cells[x][y]
+        if dist < p.dist:
+            p.dist = dist
+            p.prev = parent
+            queue.append(p)
+
+
 def startGame():
 
     all_sprites_list = pygame.sprite.RenderPlain()
@@ -302,13 +396,12 @@ def startGame():
 
     p_turn = 0
     p_steps = 0
+    start = [0, 0]
+    end = [0, 0]
 
     # Cria o caminho do grafo
     for row in range(19):
         for column in range(19):
-            # if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
-            #     continue
-            # else:
             point = Point(5, 5)
 
             # Set a random location for the block
@@ -317,13 +410,14 @@ def startGame():
 
             w_collide = pygame.sprite.spritecollide(point, wall_list, False)
             if w_collide:
-              continue
+                continue
             else:
-              all_sprites_list.add(point)
-              g.adiciona_aresta(row, column)
-              # Add the block to the list of objects
+                all_sprites_list.add(point)
+                g.adiciona_aresta(row, column)
+                # Add the block to the list of objects
 
     g.mostra_lista()
+    grafo = g.retorna_grafo()
 
     invalidposition = True
     # Random location for Person
@@ -342,8 +436,12 @@ def startGame():
     invalidposition = True
     # Random location for Zumbie
     while(invalidposition):
-        zumb_x = (30*random.randint(0, 18)+6)+12
-        zumb_y = (30*random.randint(0, 18)+6)+12
+        x = random.randint(0, 18)
+        y = random.randint(0, 18)
+        zumb_x = (30*x+6)+12
+        zumb_y = (30*y+6)+12
+        start = [y, x]
+        print("here", start)
         Zumbie = Zumbie_Class(zumb_x, zumb_y, "images/Zumbie.png")
         z_collide = pygame.sprite.spritecollide(Zumbie, wall_list, False)
         if z_collide:
@@ -361,6 +459,8 @@ def startGame():
         block = Block(yellow, 10, 10)
         block.rect.x = (30*column+6)+26
         block.rect.y = (30*row+6)+26
+        end = [row, column]
+        print("a", end)
         b_collide = pygame.sprite.spritecollide(block, wall_list, False)
         z_collide = pygame.sprite.spritecollide(block, zumbie_collide, False)
         p_collide = pygame.sprite.spritecollide(block, person_collide, False)
@@ -375,6 +475,13 @@ def startGame():
             block_list.add(block)
             all_sprites_list.add(block)
             invalidposition = False
+
+    matrix = ShortestPathBetweenCellsBFS()
+
+    print("start", start)
+    print("end", end)
+    print("case 1: ")
+    matrix.shortestPath(grafo, start, end)
 
     bll = len(block_list)
 
@@ -476,7 +583,7 @@ def doNext(message, left, all_sprites_list, block_list, zumbie_list, person_coll
         w.fill((128, 128, 128))           # this fills the entire surface
         screen.blit(w, (100, 200))    # (0,0) are the top-left coordinates
 
-        #Won or lost
+        # Won or lost
         text1 = font.render(message, True, white)
         screen.blit(text1, [left, 233])
 
