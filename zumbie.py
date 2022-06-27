@@ -90,10 +90,6 @@ def setupRoomOne(all_sprites_list):
     # return our new list
     return wall_list
 
-# This class represents the ball
-# It derives from the "Sprite" class in Pygame
-
-
 class Path (pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -213,54 +209,24 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = old_y
 
 
-""" class Zumbie_Class(Player):
-    # Change the speed of the ghost
-    def changespeed(self, listPath, turn, steps, l):
-        # l sempre vale 17
-        try:
-            z = listPath[turn][2]
-            # print("Valor do z", steps)
-            if steps < z:
-                # print("Entrou no if do step menor que z", steps, z)
-                self.change_x = listPath[turn][0]
-                self.change_y = listPath[turn][1]
-                steps += 1
-            else:
-                # print("Entrou no primeiro else")
-                if turn < l:
-                    # print("Entrou no if do TURN < L", turn, l)
-                    turn += 1
-                else:
-                    # print("Entrou no ELSE do TURN = 0")
-                    turn = 0
-                self.change_x = listPath[turn][0]
-                self.change_y = listPath[turn][1]
-                steps = 0
-            return [turn, steps]
-        except IndexError:
-            return [0, 0] """
-
 class Zumbie_Class(Player):
     # Change the speed of the ghost
-    def changespeed(self,list, steps, anda, l):
+    def changespeed(self,list, steps, count, l):
       #print("Valor do step", steps)
       try:
-        if anda == 10:
+        if count == 5:
           if steps < l:
-            print("STEP", steps)
             self.change_x=list[steps][0]
             self.change_y=list[steps][1]
             steps+=1
-            print("Valor do x", self.change_x, "valor do y", self.change_y)
-            anda = 0
+            count = 0
         else:
-            anda+=1
-        return [steps, anda]
+            count+=1
+        return [steps, count]
       except IndexError:
          return 0
 
 
-    
 def createPath(listPath, qtdpoints):
     qtd = qtdpoints
     path = [[0]*2 for i in range(int(qtd))]
@@ -270,71 +236,20 @@ def createPath(listPath, qtdpoints):
         nextx = listPath[i+1].__dict__['x']
         nexty = listPath[i+1].__dict__['y']
         
-        if(i == 0):
-            print("valor do i", i)
-            if(x == nextx and y < nexty):
-                path[i][0] = (30*1)
-                path[i][1] = 0
-            elif(x < nextx and y == nexty):
-                path[i][0] = 0
-                path[i][1] = (30*1)
-            elif(x == nextx and y > nexty):
-                path[i][0] = (30*-1)
-                path[i][1] = 0
-            elif(x > nextx and y == nexty):
-                path[i][0] = 0
-                path[i][1] = (30*-1)
-        else:
-            if(x == nextx and y < nexty):
-                path[i][0] = (30*1)
-                path[i][1] = 0
-            elif(x < nextx and y == nexty):
-                path[i][0] = 0
-                path[i][1] = (30*1)
-            elif(x == nextx and y > nexty):
-                path[i][0] = (30*-1)
-                path[i][1] = 0
-            elif(x > nextx and y == nexty):
-                path[i][0] = 0
-                path[i][1] = (30*-1)
+        if(x == nextx and y < nexty):
+            path[i][0] = (30*1)
+            path[i][1] = 0
+        elif(x < nextx and y == nexty):
+            path[i][0] = 0
+            path[i][1] = (30*1)
+        elif(x == nextx and y > nexty):
+            path[i][0] = (30*-1)
+            path[i][1] = 0
+        elif(x > nextx and y == nexty):
+            path[i][0] = 0
+            path[i][1] = (30*-1)
     
     return path
-
-
-# propriedades de cada valor = [avanço em x, avanço em y, quantidade de passos]
-# Cada item nesse array é um caminho em uma direção
-# Quando a quantidade de passos acaba ele vai pra direção seguinte no array
-
-""" def CriaCaminhoZumbi(listPath):
-    caminho= [][]
-    for i in listPath:
-        caminho[i][0] = i.__dict__['x']
-        caminho[i][0] = y = i.__dict__['y']
-    
-    return caminho """
-
-Zumbie_directions = [
-    [0, -30, 1],
-    [15, 0, 2],
-    [0, 15, 3],
-    [-15, 0, 4],
-    [0, 15, 5],
-    [15, 0, 6],
-    [0, -15, 7],
-    [15, 0, 8],
-    [0, 15, 9],
-    [15, 0, 10],
-    [0, 15, 11],
-    [15, 0, 12],
-    [0, -15, 13],
-    [-15, 0, 14],
-    [0, 15, 15],
-    [-15, 0, 16],
-    [0, -15, 17],
-    [15, 0, 18]
-]
-
-pl = len(Zumbie_directions)-1
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
@@ -450,14 +365,12 @@ def startGame():
     wall_list = setupRoomOne(all_sprites_list)
     g = Grafo(19)
 
-    p_turn = 0
     p_steps = 0
-    p_anda = 0
-    b_steps = 0
+    count = 0
     start = [0, 0]
     end = [0, 0]
 
-    # Cria o caminho do grafo
+    # Create the graph path
     for row in range(19):
         for column in range(19):
             point = Point(5, 5)
@@ -473,7 +386,6 @@ def startGame():
                 g.adiciona_aresta(row, column)
                 # Add the block to the list of objects
 
-    # g.mostra_lista()
     grafo = g.retorna_grafo()
 
     invalidposition = True
@@ -510,7 +422,7 @@ def startGame():
             zumbie_list.add(Zumbie)
             invalidposition = False
 
-    # Mostra a moedinha
+    # show the coin
     invalidposition = True
     while(invalidposition):
         column = random.randint(0, 18)
@@ -540,10 +452,6 @@ def startGame():
     matrix = ShortestPathBetweenCellsBFS()
 
     listPath = matrix.shortestPath(grafo, start, end)
-    #data = listPath.items()
-    #list = list(data)
-    #print("tipo", type(listPath[0].__dict__['x']) )
-    # Zumbie_directions = listPath
 
     for i in listPath:
         x = i.__dict__['x']
@@ -562,7 +470,6 @@ def startGame():
 
     l = len(listPath)
     caminho =  createPath(listPath, l)
-    print("CAAMINHO", caminho)
 
     while done == False:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
@@ -597,13 +504,11 @@ def startGame():
 
         lenghtPath = len(listPath)
 
-        returned = Zumbie.changespeed(caminho, p_steps, p_anda, lenghtPath)
+        returned = Zumbie.changespeed(caminho, p_steps, count, lenghtPath)
         p_steps = returned[0]
-        p_anda = returned[1]
-        #print("Valor do step", p_steps)
-        #print("Valor do Troca",returned[1])
-        Zumbie.changespeed(caminho, p_steps, p_anda, lenghtPath)
-        if(p_anda==10):
+        count = returned[1]
+        Zumbie.changespeed(caminho, p_steps, count, lenghtPath)
+        if(count==5):
             Zumbie.update(wall_list)
 
         # See if the Zumbie block has collided with anything.
