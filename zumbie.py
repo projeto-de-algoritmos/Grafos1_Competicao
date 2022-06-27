@@ -213,7 +213,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = old_y
 
 
-class Zumbie_Class(Player):
+""" class Zumbie_Class(Player):
     # Change the speed of the ghost
     def changespeed(self, listPath, turn, steps, l):
         # l sempre vale 17
@@ -238,7 +238,39 @@ class Zumbie_Class(Player):
                 steps = 0
             return [turn, steps]
         except IndexError:
-            return [0, 0]
+            return [0, 0] """
+
+class Zumbie_Class(Player):
+    # Change the speed of the ghost
+    def changespeed(self, listPath, step, troca):
+        try:
+            if(troca==10):
+                x = listPath[step].__dict__['x']
+                y = listPath[step].__dict__['y']
+                prevx = listPath[step-1].__dict__['x']
+                prevy = listPath[step-1].__dict__['y']
+                if(x == prevx and y < prevy):
+                    self.change_x = (15*-1)
+                    self.change_y = 0
+                elif(x < prevx and y == prevy):
+                    self.change_x = 0
+                    self.change_y = (15*-1)
+                elif(x == prevx and y > prevy):
+                    self.change_x = (15*1)
+                    self.change_y = 0
+                elif(x > prevx and y == prevy):
+                    self.change_x = 0
+                    self.change_y = (15*1)
+                elif(x== prevx and y == prevy):
+                    self.change_x = 0
+                    self.change_y = 0
+                troca = 0
+                step+=1
+            else:
+                troca+=1
+            return [step, troca]
+        except IndexError:
+            return [0,0]
 
 
 # propriedades de cada valor = [avanço em x, avanço em y, quantidade de passos]
@@ -265,43 +297,7 @@ Zumbie_directions = [
     [15, 0, 18]
 ]
 
-Zumbie2_directions = [
-    [30, 0, 2],
-    [0, -15, 4],
-    [15, 0, 10],
-    [0, 15, 7],
-    [15, 0, 3],
-    [0, -15, 3],
-    [15, 0, 3],
-    [0, -15, 15],
-    [-15, 0, 15],
-    [0, 15, 3],
-    [15, 0, 15],
-    [0, 15, 11],
-    [-15, 0, 3],
-    [0, -15, 7],
-    [-15, 0, 11],
-    [0, 15, 3],
-    [-15, 0, 11],
-    [0, 15, 7],
-    [-15, 0, 3],
-    [0, -15, 3],
-    [-15, 0, 3],
-    [0, -15, 15],
-    [15, 0, 15],
-    [0, 15, 3],
-    [-15, 0, 15],
-    [0, 15, 11],
-    [15, 0, 3],
-    [0, -15, 11],
-    [15, 0, 11],
-    [0, 15, 3],
-    [15, 0, 1],
-]
-
-
 pl = len(Zumbie_directions)-1
-bl = len(Zumbie2_directions)-1
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
@@ -419,7 +415,7 @@ def startGame():
 
     p_turn = 0
     p_steps = 0
-    b_turn = 0
+    troca = 0
     b_steps = 0
     start = [0, 0]
     end = [0, 0]
@@ -450,7 +446,6 @@ def startGame():
         y = random.randint(0, 18)
         per_x = (30*x+6)+12
         per_y = (30*y+6)+12
-        start = [y, x]
         Person = Player(per_x, per_y, "images/Person.png")
         p_collide = pygame.sprite.spritecollide(Person, wall_list, False)
         if p_collide:
@@ -467,6 +462,7 @@ def startGame():
         y = random.randint(0, 18)
         zumb_x = (30*x+6)+12
         zumb_y = (30*y+6)+12
+        start = [y, x]
         Zumbie = Zumbie_Class(zumb_x, zumb_y, "images/Zumbie.png")
         z_collide = pygame.sprite.spritecollide(Zumbie, wall_list, False)
         if z_collide:
@@ -476,23 +472,6 @@ def startGame():
             all_sprites_list.add(Zumbie)
             zumbie_list.add(Zumbie)
             invalidposition = False
-
-    invalidposition = True
-    # Random location for Zumbie
-    while(invalidposition):
-        x = random.randint(0, 18)
-        y = random.randint(0, 18)
-        zumb_x = (30*x+6)+12
-        zumb_y = (30*y+6)+12
-        Zumbie2 = Zumbie_Class(zumb_x, zumb_y, "images/Zumbie.png")
-        z_collide = pygame.sprite.spritecollide(Zumbie2, wall_list, False)
-        if z_collide:
-            continue
-        else:
-            zumbie2_collide.add(Zumbie2)
-            all_sprites_list.add(Zumbie2)
-            invalidposition = False
-            zumbie_list.add(Zumbie2)
 
     # Mostra a moedinha
     invalidposition = True
@@ -524,6 +503,9 @@ def startGame():
     matrix = ShortestPathBetweenCellsBFS()
 
     listPath = matrix.shortestPath(grafo, start, end)
+    #data = listPath.items()
+    #list = list(data)
+    print("tipo", type(listPath[0].__dict__['x']) )
     # Zumbie_directions = listPath
 
     for i in listPath:
@@ -573,18 +555,12 @@ def startGame():
         Person.update(wall_list)
 
         returned = Zumbie.changespeed(
-            Zumbie_directions, p_turn, p_steps, pl)
-        p_turn = returned[0]
-        p_steps = returned[1]
-        Zumbie.changespeed(Zumbie_directions, p_turn, p_steps, pl)
+            listPath, p_steps, troca)
+        p_steps = returned[0]
+        troca = returned[1]
+        print("Valor do Troca",returned[1])
+        Zumbie.changespeed(listPath, p_steps, troca)
         Zumbie.update(wall_list)
-
-        returned = Zumbie2.changespeed(
-            Zumbie2_directions, b_turn, b_steps, bl)
-        b_turn = returned[0]
-        b_steps = returned[1]
-        Zumbie2.changespeed(Zumbie2_directions, b_turn, b_steps, bl)
-        Zumbie2.update(wall_list)
 
         # See if the Zumbie block has collided with anything.
         blocks_hit_list = pygame.sprite.spritecollide(Person, block_list, True)
@@ -608,11 +584,9 @@ def startGame():
                    block_list, zumbie_collide, person_collide, wall_list)
 
         zumbie_hit_list = pygame.sprite.spritecollide(Zumbie, block_list, True)
-        zumbie2_hit_list = pygame.sprite.spritecollide(Zumbie2, block_list, True)
         zumbie_hit_person = pygame.sprite.spritecollide(Person, zumbie_list, True)
-        zumbie2_hit_person = pygame.sprite.spritecollide(Person, zumbie_list, True)
 
-        if zumbie_hit_list or zumbie2_hit_list or zumbie2_hit_person or zumbie_hit_person:
+        if zumbie_hit_list or zumbie_hit_person:
             doNext("Voce perdeu", 235, all_sprites_list, block_list,
                    zumbie_collide, person_collide, wall_list)
 
