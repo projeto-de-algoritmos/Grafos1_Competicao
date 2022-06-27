@@ -242,40 +242,77 @@ class Player(pygame.sprite.Sprite):
 
 class Zumbie_Class(Player):
     # Change the speed of the ghost
-    def changespeed(self, listPath, step, troca):
-        try:
-            if(troca==10):
-                x = listPath[step].__dict__['x']
-                y = listPath[step].__dict__['y']
-                prevx = listPath[step-1].__dict__['x']
-                prevy = listPath[step-1].__dict__['y']
-                if(x == prevx and y < prevy):
-                    self.change_x = (15*-1)
-                    self.change_y = 0
-                elif(x < prevx and y == prevy):
-                    self.change_x = 0
-                    self.change_y = (15*-1)
-                elif(x == prevx and y > prevy):
-                    self.change_x = (15*1)
-                    self.change_y = 0
-                elif(x > prevx and y == prevy):
-                    self.change_x = 0
-                    self.change_y = (15*1)
-                elif(x== prevx and y == prevy):
-                    self.change_x = 0
-                    self.change_y = 0
-                troca = 0
-                step+=1
-            else:
-                troca+=1
-            return [step, troca]
-        except IndexError:
-            return [0,0]
+    def changespeed(self,list, steps, anda, l):
+      #print("Valor do step", steps)
+      try:
+        if anda == 10:
+          if steps < l:
+            print("STEP", steps)
+            self.change_x=list[steps][0]
+            self.change_y=list[steps][1]
+            steps+=1
+            print("Valor do x", self.change_x, "valor do y", self.change_y)
+            anda = 0
+        else:
+            anda+=1
+        return [steps, anda]
+      except IndexError:
+         return 0
+
+
+    
+def createPath(listPath, qtdpoints):
+    qtd = qtdpoints
+    path = [[0]*2 for i in range(int(qtd))]
+    for i in range(qtd-1):
+        x = listPath[i].__dict__['x']
+        y = listPath[i].__dict__['y']
+        nextx = listPath[i+1].__dict__['x']
+        nexty = listPath[i+1].__dict__['y']
+        
+        if(i == 0):
+            print("valor do i", i)
+            if(x == nextx and y < nexty):
+                path[i][0] = (30*1)
+                path[i][1] = 0
+            elif(x < nextx and y == nexty):
+                path[i][0] = 0
+                path[i][1] = (30*1)
+            elif(x == nextx and y > nexty):
+                path[i][0] = (30*-1)
+                path[i][1] = 0
+            elif(x > nextx and y == nexty):
+                path[i][0] = 0
+                path[i][1] = (30*-1)
+        else:
+            if(x == nextx and y < nexty):
+                path[i][0] = (30*1)
+                path[i][1] = 0
+            elif(x < nextx and y == nexty):
+                path[i][0] = 0
+                path[i][1] = (30*1)
+            elif(x == nextx and y > nexty):
+                path[i][0] = (30*-1)
+                path[i][1] = 0
+            elif(x > nextx and y == nexty):
+                path[i][0] = 0
+                path[i][1] = (30*-1)
+    
+    return path
 
 
 # propriedades de cada valor = [avanço em x, avanço em y, quantidade de passos]
 # Cada item nesse array é um caminho em uma direção
 # Quando a quantidade de passos acaba ele vai pra direção seguinte no array
+
+""" def CriaCaminhoZumbi(listPath):
+    caminho= [][]
+    for i in listPath:
+        caminho[i][0] = i.__dict__['x']
+        caminho[i][0] = y = i.__dict__['y']
+    
+    return caminho """
+
 Zumbie_directions = [
     [0, -30, 1],
     [15, 0, 2],
@@ -415,7 +452,7 @@ def startGame():
 
     p_turn = 0
     p_steps = 0
-    troca = 0
+    p_anda = 0
     b_steps = 0
     start = [0, 0]
     end = [0, 0]
@@ -505,7 +542,7 @@ def startGame():
     listPath = matrix.shortestPath(grafo, start, end)
     #data = listPath.items()
     #list = list(data)
-    print("tipo", type(listPath[0].__dict__['x']) )
+    #print("tipo", type(listPath[0].__dict__['x']) )
     # Zumbie_directions = listPath
 
     for i in listPath:
@@ -522,6 +559,10 @@ def startGame():
     score = 0
 
     done = False
+
+    l = len(listPath)
+    caminho =  createPath(listPath, l)
+    print("CAAMINHO", caminho)
 
     while done == False:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
@@ -554,13 +595,16 @@ def startGame():
         # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
         Person.update(wall_list)
 
-        returned = Zumbie.changespeed(
-            listPath, p_steps, troca)
+        lenghtPath = len(listPath)
+
+        returned = Zumbie.changespeed(caminho, p_steps, p_anda, lenghtPath)
         p_steps = returned[0]
-        troca = returned[1]
-        print("Valor do Troca",returned[1])
-        Zumbie.changespeed(listPath, p_steps, troca)
-        Zumbie.update(wall_list)
+        p_anda = returned[1]
+        #print("Valor do step", p_steps)
+        #print("Valor do Troca",returned[1])
+        Zumbie.changespeed(caminho, p_steps, p_anda, lenghtPath)
+        if(p_anda==10):
+            Zumbie.update(wall_list)
 
         # See if the Zumbie block has collided with anything.
         blocks_hit_list = pygame.sprite.spritecollide(Person, block_list, True)
